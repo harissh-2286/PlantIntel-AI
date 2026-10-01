@@ -48,3 +48,36 @@ class AnalysisModel(Base):
             "affected_area_pixels": self.affected_area_pixels,
             "analysis_status": self.analysis_status
         }
+
+
+class PlantModel(Base):
+    __tablename__ = "plants"
+
+    id = Column(String(50), primary_key=True, index=True)
+    name = Column(String(255), nullable=False, index=True)
+    crop = Column(String(100), nullable=False, index=True)
+    variety = Column(String(100), nullable=True)
+    growth_stage = Column(String(100), nullable=True)
+    environment = Column(String(100), nullable=True)
+    soil_type = Column(String(100), nullable=True)
+    irrigation_method = Column(String(100), nullable=True)
+    location = Column(String(255), nullable=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    last_scan_at = Column(DateTime, nullable=True)
+    health_status = Column(String(100), nullable=False, default="Monitor")
+    latest_disease = Column(String(255), nullable=True)
+    latest_confidence = Column(Float, nullable=True)
+    latest_severity = Column(Float, nullable=True)
+    analysis_count = Column(Integer, nullable=False, default=0)
+
+
+class PlantAnalysisLinkModel(Base):
+    __tablename__ = "plant_analysis_links"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    plant_id = Column(String(50), nullable=False, index=True)
+    analysis_id = Column(String(50), nullable=False, index=True)
+    added_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    notes = Column(Text, nullable=True)
+

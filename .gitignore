@@ -18,6 +18,10 @@ backend/uploads/*
 !backend/uploads/.gitkeep
 backend/visualizations/*
 !backend/visualizations/.gitkeep
+backend/data/uploads/*
+!backend/data/uploads/.gitkeep
+backend/data/visualizations/*
+!backend/data/visualizations/.gitkeep
 
 # Node / React
 node_modules/

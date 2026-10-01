@@ -107,7 +107,7 @@ export default function Home() {
                     <CheckCircle2 className="w-4 h-4" />
                   </div>
                   <h4 className="text-sm font-bold">Leaf Image Input</h4>
-                  <p className="text-[11px] text-muted-foreground">User upload (JPG / PNG format)</p>
+                  <p className="text-[11px] text-muted-foreground">User upload (Supports all image formats)</p>
                 </div>
 
                 {/* Node 2 */}

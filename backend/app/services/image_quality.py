@@ -1,3 +1,4 @@
+import numpy as np
 from app.schemas.quality import QualityResponse, Checks, LeafDetection
 from app.utils.image_utils import load_image_from_bytes, calculate_blur, calculate_brightness, calculate_contrast
 from app.config import settings
@@ -6,7 +7,7 @@ def analyze_image_quality(file_bytes: bytes, filename: str) -> QualityResponse:
     warnings = []
     
     try:
-        pil_image, img_np, img_format = load_image_from_bytes(file_bytes)
+        pil_image, img_np, img_format = load_image_from_bytes(file_bytes, filename)
     except ValueError:
         return QualityResponse(
             valid=False, quality_score=0,
@@ -20,10 +21,14 @@ def analyze_image_quality(file_bytes: bytes, filename: str) -> QualityResponse:
         
     width, height = pil_image.size
     
-    # Check Format
-    format_pass = img_format.lower() in ['jpeg', 'jpg', 'png']
+    # Check Format: Accept all image formats (PNG, JPG, JPEG, WEBP, BMP, TIFF, GIF, HEIC, AVIF, SVG, ICO, etc.)
+    format_pass = (
+        isinstance(img_np, np.ndarray) 
+        and img_np.size > 0
+    )
     if not format_pass:
-        warnings.append("Unsupported file type. Please upload JPG, JPEG, or PNG.")
+        warnings.append("Unsupported or corrupted file format.")
+
         
     # Check Resolution
     resolution_pass = width >= settings.MIN_RESOLUTION and height >= settings.MIN_RESOLUTION

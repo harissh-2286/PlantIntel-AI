@@ -7,9 +7,10 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image as RLImage, KeepTogether
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
-def generate_pdf_report(analysis: dict) -> bytes:
+def generate_pdf_report(analysis: dict, guidance: dict = None) -> bytes:
     """
     Generates a professional PDF Analysis Report from stored analysis data.
+    Optional guidance dict (from /api/guidance) adds Plant Health Guidance sections.
     """
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -30,7 +31,7 @@ def generate_pdf_report(analysis: dict) -> bytes:
         fontName='Helvetica-Bold',
         fontSize=22,
         leading=26,
-        textColor=colors.HexColor('#059669') # Emerald-600
+        textColor=colors.HexColor('#059669')
     )
     
     subtitle_style = ParagraphStyle(
@@ -53,6 +54,17 @@ def generate_pdf_report(analysis: dict) -> bytes:
         spaceAfter=6
     )
 
+    guidance_section_style = ParagraphStyle(
+        'GuidanceSectionHeader',
+        parent=styles['Heading3'],
+        fontName='Helvetica-Bold',
+        fontSize=11,
+        leading=14,
+        textColor=colors.HexColor('#065F46'),
+        spaceBefore=10,
+        spaceAfter=4
+    )
+
     body_style = ParagraphStyle(
         'BodyTextCustom',
         parent=styles['Normal'],
@@ -60,6 +72,17 @@ def generate_pdf_report(analysis: dict) -> bytes:
         fontSize=9,
         leading=13,
         textColor=colors.HexColor('#374151')
+    )
+
+    bullet_style = ParagraphStyle(
+        'BulletItem',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=8,
+        leading=12,
+        textColor=colors.HexColor('#374151'),
+        leftIndent=14,
+        bulletIndent=6
     )
 
     disclaimer_style = ParagraphStyle(
@@ -75,7 +98,10 @@ def generate_pdf_report(analysis: dict) -> bytes:
 
     # Title & Subtitle Header
     story.append(Paragraph("PlantIntel AI — Plant Disease Intelligence Report", title_style))
-    story.append(Paragraph(f"Analysis ID: <b>{analysis.get('analysis_id')}</b> | Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}", subtitle_style))
+    story.append(Paragraph(
+        f"Analysis ID: <b>{analysis.get('analysis_id')}</b> | Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}",
+        subtitle_style
+    ))
     story.append(Spacer(1, 10))
 
     # Summary Card Table
@@ -139,11 +165,86 @@ def generate_pdf_report(analysis: dict) -> bytes:
     story.append(area_table)
     story.append(Spacer(1, 15))
 
+    # ─────────────────────────────────────────────────────────
+    # PLANT HEALTH GUIDANCE SECTIONS (if guidance data provided)
+    # ─────────────────────────────────────────────────────────
+    if guidance:
+        story.append(Paragraph("Plant Health Guidance", section_style))
+        story.append(Paragraph(
+            f"Crop: {guidance.get('crop', 'Unspecified')} | "
+            f"Confidence Level: {guidance.get('confidence_level', 'N/A').title()} | "
+            f"Health Status: {guidance.get('health_status', 'N/A')} | "
+            f"Knowledge Base: {guidance.get('knowledge_base_version', 'v1.0')}",
+            subtitle_style
+        ))
+        story.append(Spacer(1, 8))
+
+        def _render_cards(title: str, cards: list):
+            if not cards:
+                return
+            story.append(Paragraph(title, guidance_section_style))
+            for card in cards:
+                if isinstance(card, dict):
+                    priority = card.get('priority', '')
+                    card_title = card.get('title', '')
+                    desc = card.get('description', '')
+                    why = card.get('why_it_matters', '')
+                    story.append(Paragraph(f"<b>[{priority}]</b> {card_title}", bullet_style))
+                    story.append(Paragraph(f"   {desc}", bullet_style))
+                    if why:
+                        story.append(Paragraph(f"   <i>Why: {why}</i>", disclaimer_style))
+            story.append(Spacer(1, 6))
+
+        _render_cards("Immediate Actions", guidance.get('immediate_actions', []))
+        _render_cards("Prevent Further Spread", guidance.get('prevention', []))
+        _render_cards("Water & Irrigation Guidance", guidance.get('water_and_environment', []))
+        _render_cards("Nutrition Guidance", guidance.get('nutrition_guidance', []))
+        _render_cards("Natural & Biological Options", guidance.get('natural_and_biological_options', []))
+        _render_cards("What To Avoid", guidance.get('what_to_avoid', []))
+
+        monitoring_days = guidance.get('monitoring_interval_days', 'N/A')
+        next_check = guidance.get('recommended_next_check', 'N/A')
+        story.append(Paragraph("Monitoring Plan", guidance_section_style))
+        story.append(Paragraph(f"Recommended monitoring interval: {monitoring_days} days", bullet_style))
+        story.append(Paragraph(next_check, bullet_style))
+        story.append(Spacer(1, 6))
+
+        expert_conditions = guidance.get('when_to_seek_expert_advice', [])
+        if expert_conditions:
+            story.append(Paragraph("When To Seek Expert Advice", guidance_section_style))
+            for cond in expert_conditions:
+                story.append(Paragraph(f"• {cond}", bullet_style))
+            story.append(Spacer(1, 6))
+
+        dvn = guidance.get('disease_vs_nutrient_note', '')
+        if dvn:
+            story.append(Paragraph("Educational Note: Disease vs. Nutrient Deficiency", guidance_section_style))
+            story.append(Paragraph(dvn, disclaimer_style))
+            story.append(Spacer(1, 6))
+
+        sources = guidance.get('sources', [])
+        if sources:
+            story.append(Paragraph("Guidance Sources", guidance_section_style))
+            for src in sources:
+                if isinstance(src, dict):
+                    src_type = src.get('source_type', '').replace('_', ' ').title()
+                    story.append(Paragraph(
+                        f"• {src.get('source_title', '')} [{src_type}] — {src.get('source_url', '')}",
+                        disclaimer_style
+                    ))
+            story.append(Spacer(1, 8))
+
+        guidance_disclaimer = guidance.get('disclaimer', '')
+        if guidance_disclaimer:
+            story.append(Paragraph(guidance_disclaimer, disclaimer_style))
+            story.append(Spacer(1, 8))
+
     # Mandatory Legal & Scientific Limitation Disclaimer
     story.append(Paragraph("<b>Scientific & Legal Disclaimer Notice:</b>", section_style))
     disclaimer_text = (
         "AI-assisted analysis only. Results depend on image quality, training data, model performance, and the severity-estimation method. "
-        "The explanation visualizations indicate model-associated image regions and should not be interpreted as ground-truth disease segmentation."
+        "The explanation visualizations indicate model-associated image regions and should not be interpreted as ground-truth disease segmentation. "
+        "Agricultural recommendations are conditional and context-dependent. Consult a qualified agronomist for critical crop management decisions."
     )
     story.append(Paragraph(disclaimer_text, disclaimer_style))
 

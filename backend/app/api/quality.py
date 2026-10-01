@@ -6,11 +6,6 @@ router = APIRouter()
 
 @router.post("/quality-check", response_model=QualityResponse)
 async def quality_check(file: UploadFile = File(...)):
-    # Validate mime
-    if file.content_type not in ["image/jpeg", "image/png"]:
-        # If strictly filtering before processing. We'll let service handle extension checking,
-        # but for security, check basic mime here if needed. The service already returns warnings.
-        pass
         
     try:
         contents = await file.read()

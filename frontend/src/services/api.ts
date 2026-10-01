@@ -451,6 +451,159 @@ export const getHistoryStats = async (): Promise<HistoryStatsResponse> => {
     return fetchApi<HistoryStatsResponse>('/api/history/stats', undefined, "Failed to load history statistics.");
 }
 
+// ─────────────────────────────────────────────────────────────────────
+// Phase 12 — Plant Health Guidance & Continuous Monitoring API
+// ─────────────────────────────────────────────────────────────────────
 
+export interface GuidanceSource {
+    source_type: string;
+    source_title: string;
+    source_url: string;
+    source_date?: string;
+}
 
+export interface RecommendationCard {
+    id: string;
+    title: string;
+    description: string;
+    why_it_matters: string;
+    priority: string;
+    applicable_condition: string;
+    source?: GuidanceSource;
+}
 
+export interface GuidanceResponse {
+    analysis_id: string;
+    knowledge_base_version: string;
+    crop: string;
+    growth_stage: string;
+    environment: string;
+    predicted_class: string;
+    confidence: number;
+    confidence_level: string;
+    is_confirmed: boolean;
+    status_label: string;
+    health_status: string;
+    health_indicator_score: number;
+    severity_percentage: number;
+    severity_level: string;
+    severity_interpretation: string;
+    immediate_actions: RecommendationCard[];
+    prevention: RecommendationCard[];
+    water_and_environment: RecommendationCard[];
+    nutrition_guidance: RecommendationCard[];
+    natural_and_biological_options: RecommendationCard[];
+    what_to_avoid: RecommendationCard[];
+    disease_vs_nutrient_note: string;
+    chemical_management_reference?: string;
+    resistance_management_note?: string;
+    integrated_pest_management_note: string;
+    monitoring_interval_days: number;
+    recommended_next_check: string;
+    when_to_seek_expert_advice: string[];
+    sources: GuidanceSource[];
+    disclaimer: string;
+}
+
+export interface GuidanceRequest {
+    analysis_id: string;
+    crop?: string | null;
+    variety?: string | null;
+    growth_stage?: string;
+    environment?: string;
+    soil_type?: string | null;
+    irrigation_method?: string | null;
+}
+
+export const getPlantGuidance = async (req: GuidanceRequest): Promise<GuidanceResponse> => {
+    return fetchApi<GuidanceResponse>('/api/guidance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req),
+    }, "Failed to generate plant health guidance.");
+}
+
+export const getSupportedCrops = async () => {
+    return fetchApi<{ knowledge_base_version: string; supported_crops: any[]; note: string }>(
+        '/api/guidance/crops', undefined, "Failed to fetch supported crops."
+    );
+}
+
+export const getSupportedDiseases = async () => {
+    return fetchApi<{ knowledge_base_version: string; total_diseases: number; diseases: any[] }>(
+        '/api/guidance/diseases', undefined, "Failed to fetch supported diseases."
+    );
+}
+
+// Plant Profile / Monitoring APIs
+
+export interface PlantItem {
+    plant_id: string;
+    name: string;
+    crop: string;
+    variety?: string;
+    created_at: string;
+    last_scan_at?: string;
+    health_status: string;
+    latest_disease?: string;
+    latest_confidence?: number;
+    latest_severity?: number;
+    analysis_count: number;
+}
+
+export interface PlantCreateRequest {
+    name: string;
+    crop: string;
+    variety?: string;
+    growth_stage?: string;
+    environment?: string;
+    soil_type?: string;
+    irrigation_method?: string;
+    location?: string;
+    notes?: string;
+    initial_analysis_id?: string;
+}
+
+export const createPlant = async (req: PlantCreateRequest): Promise<PlantItem> => {
+    return fetchApi<PlantItem>('/api/plants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req),
+    }, "Failed to create plant profile.");
+}
+
+export const getPlants = async (limit = 100, offset = 0) => {
+    return fetchApi<{ plants: PlantItem[]; total: number; limit: number; offset: number }>(
+        `/api/plants?limit=${limit}&offset=${offset}`, undefined, "Failed to fetch plant profiles."
+    );
+}
+
+export const getPlantDetail = async (plantId: string) => {
+    return fetchApi<any>(`/api/plants/${encodeURIComponent(plantId)}`, undefined, "Failed to fetch plant detail.");
+}
+
+export const linkAnalysisToPlant = async (plantId: string, analysisId: string, notes?: string) => {
+    return fetchApi<any>(`/api/plants/${encodeURIComponent(plantId)}/analysis`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ analysis_id: analysisId, notes: notes || null }),
+    }, "Failed to link analysis to plant.");
+}
+
+export const getPlantTimeline = async (plantId: string) => {
+    return fetchApi<any>(`/api/plants/${encodeURIComponent(plantId)}/timeline`, undefined, "Failed to fetch plant timeline.");
+}
+
+export const getPlantTrend = async (plantId: string) => {
+    return fetchApi<any>(`/api/plants/${encodeURIComponent(plantId)}/trend`, undefined, "Failed to fetch plant trend.");
+}
+
+export const getMonitoringDashboard = async () => {
+    return fetchApi<any>('/api/plants/dashboard', undefined, "Failed to fetch monitoring dashboard.");
+}
+
+export const deletePlant = async (plantId: string): Promise<void> => {
+    return fetchApi<void>(`/api/plants/${encodeURIComponent(plantId)}`, {
+        method: 'DELETE',
+    }, "Failed to delete plant profile.");
+}

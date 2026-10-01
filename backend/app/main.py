@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 
-from app.api import quality, predict, endpoints, explain, severity, history
+from app.api import quality, predict, endpoints, explain, severity, history, guidance, plants
 from app.database.database import init_db
 from app.ml.model import ai_model
 
@@ -23,8 +23,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="PlantIntel AI",
-    description="AI Plant Disease Intelligence & Explainability Platform",
-    version="1.0.0",
+    description="AI Plant Disease Intelligence, Explainability & Continuous Monitoring Platform",
+    version="2.0.0",
     lifespan=lifespan
 )
 
@@ -50,8 +50,10 @@ def health_check():
     return {
         "status": "ok",
         "service": "PlantIntel AI",
-        "phase": 10,
-        "mode": "production"
+        "version": "2.0.0",
+        "phase": 12,
+        "mode": "production",
+        "modules": ["disease_classification", "severity_estimation", "explainability", "plant_health_guidance", "continuous_monitoring"]
     }
 
 # Include API Endpoints
@@ -61,6 +63,9 @@ app.include_router(endpoints.router, prefix="/api")
 app.include_router(explain.router, prefix="/api")
 app.include_router(severity.router, prefix="/api")
 app.include_router(history.router, prefix="/api")
+# Phase 12 — Plant Health Guidance & Continuous Monitoring
+app.include_router(guidance.router, prefix="/api")
+app.include_router(plants.router, prefix="/api")
 
 # Static Frontend Mounting for Unified Deployment
 frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))

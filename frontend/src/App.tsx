@@ -10,6 +10,8 @@ import History from "./pages/History"
 import AnalysisDetail from "./pages/AnalysisDetail"
 import PlantCare from "./pages/PlantCare"
 import About from "./pages/About"
+import Guidance from "./pages/Guidance"
+import Monitoring from "./pages/Monitoring"
 
 function App() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
@@ -49,6 +51,8 @@ function App() {
               <Route path="/history" element={<History />} />
               <Route path="/analysis/:analysis_id" element={<AnalysisDetail />} />
               <Route path="/plant-care" element={<PlantCare />} />
+              <Route path="/guidance/:analysis_id" element={<Guidance />} />
+              <Route path="/monitoring" element={<Monitoring />} />
               <Route path="/about" element={<About />} />
             </Routes>
           </div>

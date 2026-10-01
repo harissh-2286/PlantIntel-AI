@@ -139,6 +139,14 @@ export default function AnalysisDetail() {
           <Button 
             variant="outline" 
             size="sm" 
+            onClick={() => navigate(`/guidance/${encodeURIComponent(data.analysis_id)}`)} 
+            className="text-xs border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+          >
+            🌱 Plant Health Guidance
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
             onClick={handleDelete} 
             disabled={deleting} 
             className="text-xs border-destructive/30 text-destructive hover:bg-destructive/10"

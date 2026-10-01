@@ -62,8 +62,13 @@ export default function Analyze() {
   }
 
   const handleFile = async (f: File) => {
-    if (!f.type.startsWith('image/')) {
-        setErrorMessage("Unsupported file type. Please upload JPG, JPEG, or PNG.")
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif', 'tiff', 'tif', 'heic', 'heif', 'avif', 'ico', 'svg', 'ppm', 'pgm', 'pbm']
+    const ext = f.name.split('.').pop()?.toLowerCase() || ''
+    const isImageMime = f.type && f.type.startsWith('image/')
+    const isImageExt = allowedExtensions.includes(ext)
+
+    if (f.type && !isImageMime && !isImageExt) {
+        setErrorMessage("Unsupported file format. Please upload a valid image file.")
         return;
     }
     if (f.size > 10 * 1024 * 1024) {
@@ -256,14 +261,14 @@ export default function Analyze() {
                     type="file" 
                     ref={fileInputRef}
                     className="hidden" 
-                    accept="image/jpeg, image/png, image/jpg"
+                    accept="image/*,.jpg,.jpeg,.png,.webp,.bmp,.gif,.tiff,.tif,.heic,.heif,.avif,.ico,.svg"
                     onChange={(e) => e.target.files && handleFile(e.target.files[0])}
                   />
                   <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 transition-transform ${isDragging ? 'bg-primary/20 scale-110' : 'bg-primary/10 group-hover:scale-110'}`}>
                     <UploadCloud className={`w-8 h-8 ${isDragging ? 'text-primary' : 'text-primary'}`} />
                   </div>
                   <h3 className="text-lg font-medium mb-2">{isDragging ? 'Drop image to analyze' : 'Drag & drop your leaf image'}</h3>
-                  <p className="text-sm text-muted-foreground">or click to browse files (JPG, PNG)</p>
+                  <p className="text-sm text-muted-foreground">or click to browse files (Supports all image formats: PNG, JPG, WEBP, BMP, TIFF, HEIC, etc.)</p>
                   {errorMessage && (
                       <p className="text-sm text-destructive mt-4">{errorMessage}</p>
                   )}
@@ -304,7 +309,9 @@ export default function Analyze() {
                          <div className="text-muted-foreground">Dimensions</div>
                          <div className="font-medium">{dimensions ? `${dimensions.w} × ${dimensions.h}` : '--'}</div>
                          <div className="text-muted-foreground">Type</div>
-                         <div className="font-medium">{file?.type.split('/')[1].toUpperCase()}</div>
+                         <div className="font-medium">
+                           {file ? (file.type && file.type.includes('/') ? file.type.split('/')[1].toUpperCase() : (file.name.split('.').pop() || 'IMAGE').toUpperCase()) : '--'}
+                         </div>
                      </div>
                   </div>
 

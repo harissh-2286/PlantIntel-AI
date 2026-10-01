@@ -19,24 +19,39 @@ def calculate_contrast(image_np: np.ndarray) -> float:
     gray = cv2.cvtColor(image_np, cv2.COLOR_RGB2GRAY)
     return gray.std()
 
-def load_image_from_bytes(data: bytes) -> tuple[Image.Image, np.ndarray, str]:
+def load_image_from_bytes(data: bytes, filename: str = "") -> tuple[Image.Image, np.ndarray, str]:
+    img_format = ""
+    if filename and "." in filename:
+        img_format = filename.rsplit(".", 1)[-1].upper()
+
     try:
-        pil_image = Image.open(io.BytesIO(data))
-        pil_image.verify()  # Verify it's an image
+        raw_pil = Image.open(io.BytesIO(data))
+        orig_format = raw_pil.format or ""
         
-        # Need to reopen because verify() messes with the file pointer
+        # Reopen because verify/inspect messes with file pointer
         pil_image = Image.open(io.BytesIO(data))
         
-        # Convert to RGB if not already
-        if pil_image.mode not in ('RGB', 'L'):
+        # Convert to RGB
+        if pil_image.mode != 'RGB':
             pil_image = pil_image.convert('RGB')
             
-        img_format = pil_image.format or "UNKNOWN"
-            
+        final_format = orig_format or img_format or pil_image.format or "PNG"
         img_np = np.array(pil_image)
-        return pil_image, img_np, img_format
+        return pil_image, img_np, final_format
     except Exception as e:
+        # Fallback to OpenCV decoding if PIL fails
+        try:
+            nparr = np.frombuffer(data, np.uint8)
+            bgr = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            if bgr is not None and bgr.size > 0:
+                rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+                pil_image = Image.fromarray(rgb)
+                final_format = img_format or "IMAGE"
+                return pil_image, rgb, final_format
+        except Exception:
+            pass
         raise ValueError(f"Unable to read image: {e}")
+
 
 def heatmap_to_base64(heatmap_np: np.ndarray, target_size=(384, 384)) -> str:
     """

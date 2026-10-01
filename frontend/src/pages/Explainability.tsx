@@ -121,14 +121,14 @@ export default function Explainability() {
                   <input 
                     type="file" 
                     className="hidden" 
-                    accept="image/jpeg, image/png, image/jpg"
+                    accept="image/*,.jpg,.jpeg,.png,.webp,.bmp,.gif,.tiff,.tif,.heic,.heif,.avif,.ico,.svg"
                     onChange={(e) => e.target.files && e.target.files[0] && handleFileChange(e.target.files[0])}
                   />
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-3 group-hover:scale-110 transition-transform">
                     <UploadCloud className="w-6 h-6" />
                   </div>
                   <span className="text-sm font-medium">Click or drag leaf image</span>
-                  <span className="text-xs text-muted-foreground mt-1">JPG, PNG up to 10MB</span>
+                  <span className="text-xs text-muted-foreground mt-1">Supports all image formats up to 10MB</span>
                 </label>
               ) : (
                 <div className="space-y-4">
@@ -140,7 +140,7 @@ export default function Explainability() {
                       <input 
                         type="file" 
                         className="hidden" 
-                        accept="image/jpeg, image/png, image/jpg"
+                        accept="image/*,.jpg,.jpeg,.png,.webp,.bmp,.gif,.tiff,.tif,.heic,.heif,.avif,.ico,.svg"
                         onChange={(e) => e.target.files && e.target.files[0] && handleFileChange(e.target.files[0])}
                       />
                       <Button variant="secondary" className="w-full text-xs" disabled={loading}>Change Image</Button>

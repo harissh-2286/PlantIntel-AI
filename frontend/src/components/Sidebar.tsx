@@ -12,7 +12,9 @@ import {
   Sun,
   Moon,
   Menu,
-  X
+  X,
+  Activity,
+  Heart
 } from "lucide-react"
 
 interface SidebarProps {
@@ -30,7 +32,8 @@ export default function Sidebar({ theme, toggleTheme }: SidebarProps) {
     { name: "Explainability", path: "/explainability", icon: ScanSearch },
     { name: "Research Dashboard", path: "/research", icon: LayoutDashboard },
     { name: "History", path: "/history", icon: History },
-    { name: "Plant Care Guide", path: "/plant-care", icon: Leaf },
+    { name: "Plant Health Guidance", path: "/plant-care", icon: Heart },
+    { name: "Monitoring", path: "/monitoring", icon: Activity },
     { name: "About", path: "/about", icon: Info },
   ]
 
@@ -50,7 +53,7 @@ export default function Sidebar({ theme, toggleTheme }: SidebarProps) {
           <Leaf className="w-8 h-8" />
           <div>
             <h1 className="font-bold text-xl tracking-tight text-gray-900 dark:text-gray-100">PlantIntel <span className="text-emerald-500 font-light">AI</span></h1>
-            <p className="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400">Detect • Explain • Quantify</p>
+            <p className="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400">Detect • Guide • Monitor</p>
           </div>
         </div>
 
