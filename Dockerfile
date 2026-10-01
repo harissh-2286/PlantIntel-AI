@@ -33,10 +33,11 @@ COPY research/ ./research/
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app/backend
 ENV MODEL_MODE=attention
 ENV PORT=8000
 
 EXPOSE 8000
 
 # Run Uvicorn production server
-CMD ["python", "-m", "uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
