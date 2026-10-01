@@ -2,10 +2,11 @@ import os
 import sys
 import logging
 
-# Ensure backend directory is in sys.path for app module imports regardless of working directory
+# Ensure backend directory is first in sys.path for app module imports
 backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if backend_dir not in sys.path:
-    sys.path.insert(0, backend_dir)
+if backend_dir in sys.path:
+    sys.path.remove(backend_dir)
+sys.path.insert(0, backend_dir)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
