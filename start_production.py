@@ -10,6 +10,12 @@ def run_cmd(cmd, cwd=None):
         sys.exit(result.returncode)
 
 def main():
+    if hasattr(sys.stdout, 'reconfigure'):
+        try:
+            sys.stdout.reconfigure(encoding='utf-8')
+        except Exception:
+            pass
+
     root_dir = os.path.abspath(os.path.dirname(__file__))
     frontend_dir = os.path.join(root_dir, "frontend")
     backend_dir = os.path.join(root_dir, "backend")
@@ -21,10 +27,10 @@ def main():
 
     # Step 1: Ensure Frontend Production Build Exists
     if not os.path.exists(dist_dir) or not os.listdir(dist_dir):
-        print("🔨 Building Frontend Production Bundle...")
+        print("[BUILD] Building Frontend Production Bundle...")
         run_cmd("npm run build", cwd=frontend_dir)
     else:
-        print("✓ Frontend production build found at frontend/dist")
+        print("[OK] Frontend production build found at frontend/dist")
 
     # Step 2: Set Python Path & Virtual Env Executable
     venv_python = os.path.join(backend_dir, "venv", "Scripts", "python.exe")
@@ -33,8 +39,8 @@ def main():
     if not os.path.exists(venv_python):
         venv_python = sys.executable
 
-    print(f"✓ Using Python executable: {venv_python}")
-    print("\n🚀 Launching Unified Production Server on http://0.0.0.0:8000...")
+    print(f"[OK] Using Python executable: {venv_python}")
+    print("\n[LAUNCH] Launching Unified Production Server on http://0.0.0.0:8000...")
     print("   -> Frontend App: http://localhost:8000")
     print("   -> API Health:   http://localhost:8000/api/health")
     print("   -> API Docs:     http://localhost:8000/docs")

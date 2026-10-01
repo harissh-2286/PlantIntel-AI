@@ -86,11 +86,11 @@ def test_overfitting_sanity():
     x = torch.randn(4, 3, 64, 64)
     y = torch.tensor([0, 0, 1, 1], dtype=torch.long)
     
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.CrossEntropyLoss()
     
     initial_loss = criterion(model(x), y).item()
-    for _ in range(15):
+    for _ in range(30):
         optimizer.zero_grad()
         loss = criterion(model(x), y)
         loss.backward()

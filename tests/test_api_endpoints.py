@@ -3,6 +3,7 @@ import sys
 import io
 import asyncio
 from PIL import Image
+import pytest
 from httpx import AsyncClient, ASGITransport
 
 # Add backend directory to sys.path
@@ -19,6 +20,7 @@ def create_dummy_image_bytes(width=224, height=224, color=(0, 255, 0), format="J
     buf.seek(0)
     return buf.getvalue()
 
+@pytest.mark.anyio
 async def test_api_endpoints_suite():
     print("\n==========================================")
     print("RUNNING API ENDPOINT AUTOMATED TEST SUITE")
