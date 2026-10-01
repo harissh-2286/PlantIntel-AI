@@ -161,7 +161,8 @@ export interface AblationStudyResponse {
     experiments?: Record<string, ExperimentMetrics>;
 }
 
-export const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+const DEFAULT_BACKEND = 'https://plantintel-ai.onrender.com';
+export const API_BASE_URL = (import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app') ? DEFAULT_BACKEND : '')).replace(/\/$/, '');
 
 async function fetchApi<T>(endpoint: string, options?: RequestInit, defaultErrorMessage?: string): Promise<T> {
     const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;

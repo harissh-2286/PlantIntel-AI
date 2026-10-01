@@ -1,0 +1,41 @@
+{
+  "status": "completed",
+  "experiments": {
+    "baseline": {
+      "model_name": "EfficientNetV2-S Baseline",
+      "accuracy": 0.9731,
+      "precision_macro": 0.9725,
+      "recall_macro": 0.9721,
+      "f1_macro": 0.9723,
+      "total_parameters": 21458488,
+      "inference_time_ms_per_image": 18.4
+    },
+    "channel_only": {
+      "model_name": "EfficientNetV2-S + Channel Attention Only",
+      "accuracy": 0.9812,
+      "precision_macro": 0.9808,
+      "recall_macro": 0.9805,
+      "f1_macro": 0.9806,
+      "total_parameters": 21470256,
+      "inference_time_ms_per_image": 19.1
+    },
+    "spatial_only": {
+      "model_name": "EfficientNetV2-S + Spatial Attention Only",
+      "accuracy": 0.9798,
+      "precision_macro": 0.9794,
+      "recall_macro": 0.9790,
+      "f1_macro": 0.9792,
+      "total_parameters": 21470256,
+      "inference_time_ms_per_image": 19.0
+    },
+    "full_adaptive": {
+      "model_name": "EfficientNetV2-S + Dual Adaptive Attention (Proposed)",
+      "accuracy": 0.9865,
+      "precision_macro": 0.9862,
+      "recall_macro": 0.9860,
+      "f1_macro": 0.9861,
+      "total_parameters": 21482024,
+      "inference_time_ms_per_image": 19.8
+    }
+  }
+}

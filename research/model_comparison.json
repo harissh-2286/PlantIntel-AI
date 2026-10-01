@@ -1,0 +1,26 @@
+{
+  "status": "completed",
+  "baseline": {
+    "model_name": "Baseline EfficientNetV2-S",
+    "accuracy": 0.9731,
+    "precision_macro": 0.9725,
+    "recall_macro": 0.9721,
+    "f1_macro": 0.9723,
+    "total_parameters": 21458488,
+    "inference_time_ms_per_image": 18.4
+  },
+  "attention": {
+    "model_name": "EfficientNetV2-S + Adaptive Lightweight Attention",
+    "accuracy": 0.9865,
+    "precision_macro": 0.9862,
+    "recall_macro": 0.9860,
+    "f1_macro": 0.9861,
+    "total_parameters": 21482024,
+    "inference_time_ms_per_image": 19.8
+  },
+  "delta": {
+    "accuracy_gain_pct": 1.34,
+    "f1_gain_pct": 1.38,
+    "parameter_overhead_pct": 0.11
+  }
+}
