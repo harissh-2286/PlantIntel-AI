@@ -161,108 +161,121 @@ export interface AblationStudyResponse {
     experiments?: Record<string, ExperimentMetrics>;
 }
 
+export const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+
+async function fetchApi<T>(endpoint: string, options?: RequestInit, defaultErrorMessage?: string): Promise<T> {
+    const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+    
+    let response: Response;
+    try {
+        response = await fetch(url, options);
+    } catch (err: any) {
+        throw new Error(`Unable to connect to backend server. ${err?.message || ''}`);
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+
+    if (contentType.includes('text/html')) {
+        throw new Error("Backend API server returned HTML instead of JSON. Ensure your Python backend is running and VITE_API_URL is configured.");
+    }
+
+    const text = await response.text();
+
+    if (text.trim().startsWith('<')) {
+        throw new Error("Backend API endpoint returned an HTML page (404/Route Mismatch). Please set VITE_API_URL in your environment.");
+    }
+
+    if (!response.ok) {
+        let errorMsg = '';
+        try {
+            const errorJson = JSON.parse(text);
+            if (errorJson.detail) {
+                errorMsg = typeof errorJson.detail === 'string' ? errorJson.detail : JSON.stringify(errorJson.detail);
+            } else if (errorJson.message) {
+                errorMsg = errorJson.message;
+            }
+        } catch {
+            // Not JSON
+        }
+
+        if (response.status === 413) {
+            throw new Error("Image is too large. Maximum file size is 10 MB.");
+        } else if (response.status === 503) {
+            throw new Error(errorMsg || defaultErrorMessage || "AI service is currently unavailable.");
+        } else if (response.status === 404) {
+            throw new Error(errorMsg || defaultErrorMessage || "Requested resource not found.");
+        } else if (response.status === 400 || response.status === 422) {
+            throw new Error(errorMsg || defaultErrorMessage || "This image cannot be processed.");
+        } else if (response.status >= 500) {
+            throw new Error(errorMsg || defaultErrorMessage || "Something went wrong on the backend server.");
+        }
+
+        throw new Error(errorMsg || defaultErrorMessage || `Server error (${response.status})`);
+    }
+
+    if (!text || text.trim() === '') {
+        return {} as T;
+    }
+
+    try {
+        return JSON.parse(text) as T;
+    } catch {
+        throw new Error("Invalid JSON response received from backend API server.");
+    }
+}
+
 export const checkImageQuality = async (file: File): Promise<QualityResponse> => {
     const formData = new FormData();
     formData.append('file', file);
     
-    const response = await fetch('/api/quality-check', {
+    return fetchApi<QualityResponse>('/api/quality-check', {
         method: 'POST',
         body: formData,
-    });
-    
-    if (response.status === 413) {
-        throw new Error("Image is too large. Maximum file size is 10 MB.");
-    }
-    
-    if (!response.ok) {
-        if (response.status === 400 || response.status === 422) {
-             throw new Error("This image cannot be processed.");
-        } else if (response.status >= 500) {
-             throw new Error("Something went wrong while analyzing the image.");
-        }
-        throw new Error("Unable to connect to the analysis service.");
-    }
-    
-    const data = await response.json();
-    return data;
+    }, "Unable to connect to the analysis service.");
 }
 
 export const predictImage = async (file: File): Promise<PredictResponse> => {
     const formData = new FormData();
     formData.append('file', file);
     
-    const response = await fetch('/api/predict', {
+    return fetchApi<PredictResponse>('/api/predict', {
         method: 'POST',
         body: formData,
-    });
-    
-    if (!response.ok) {
-        if (response.status === 503) {
-            throw new Error("Unable to load EfficientNetV2-S.");
-        }
-        throw new Error("Model inference failed.");
-    }
-    
-    return await response.json();
+    }, "Model inference failed.");
 }
 
 export const analyzeSeverity = async (file: File): Promise<SeverityResponse> => {
     const formData = new FormData();
     formData.append('file', file);
     
-    const response = await fetch('/api/severity', {
+    return fetchApi<SeverityResponse>('/api/severity', {
         method: 'POST',
         body: formData,
-    });
-    
-    if (!response.ok) {
-        throw new Error("Severity estimation failed.");
-    }
-    
-    return await response.json();
+    }, "Severity estimation failed.");
 }
 
 export const analyzeFullPipeline = async (file: File): Promise<AnalyzeFullResponse> => {
     const formData = new FormData();
     formData.append('file', file);
     
-    const response = await fetch('/api/analyze', {
+    return fetchApi<AnalyzeFullResponse>('/api/analyze', {
         method: 'POST',
         body: formData,
-    });
-    
-    if (!response.ok) {
-        if (response.status === 503) {
-            throw new Error("AI service is currently unavailable.");
-        }
-        throw new Error("Full pipeline analysis failed.");
-    }
-    
-    return await response.json();
+    }, "Full pipeline analysis failed.");
 }
 
 export const getAttentionMap = async (file: File): Promise<AttentionResponse> => {
     const formData = new FormData();
     formData.append('file', file);
     
-    const response = await fetch('/api/explain/attention', {
+    return fetchApi<AttentionResponse>('/api/explain/attention', {
         method: 'POST',
         body: formData,
-    });
-    
-    if (!response.ok) {
-        throw new Error("Failed to extract attention map.");
-    }
-    
-    return await response.json();
+    }, "Failed to extract attention map.");
 }
 
 export const getModelInfo = async (): Promise<ModelInfo> => {
-    const response = await fetch('/api/model/info');
-    if (!response.ok) {
-        throw new Error("AI model dependencies are not installed.");
-    }
-    return await response.json();
+    return fetchApi<ModelInfo>('/api/model/info', undefined, "AI model dependencies are not installed.");
 }
 
 export interface GradCAMExplanation {
@@ -318,16 +331,10 @@ export const getGradCAMExplanation = async (file: File, targetClass?: number): P
         formData.append('target_class', targetClass.toString());
     }
     
-    const response = await fetch('/api/explain/gradcam', {
+    return fetchApi<GradCAMResponse>('/api/explain/gradcam', {
         method: 'POST',
         body: formData,
-    });
-    
-    if (!response.ok) {
-        throw new Error("Unable to generate Grad-CAM++ explanation.");
-    }
-    
-    return await response.json();
+    }, "Unable to generate Grad-CAM++ explanation.");
 }
 
 export const getCombinedExplanation = async (file: File, targetClass?: number): Promise<CombinedExplainResponse> => {
@@ -337,48 +344,26 @@ export const getCombinedExplanation = async (file: File, targetClass?: number): 
         formData.append('target_class', targetClass.toString());
     }
     
-    const response = await fetch('/api/explain', {
+    return fetchApi<CombinedExplainResponse>('/api/explain', {
         method: 'POST',
         body: formData,
-    });
-    
-    if (!response.ok) {
-        throw new Error("Unable to generate combined explanation.");
-    }
-    
-    return await response.json();
+    }, "Unable to generate combined explanation.");
 }
 
 export const getResearchMetrics = async (): Promise<ResearchMetricsResponse> => {
-    const response = await fetch('/api/research/metrics');
-    if (!response.ok) {
-        throw new Error("Failed to fetch research metrics.");
-    }
-    return await response.json();
+    return fetchApi<ResearchMetricsResponse>('/api/research/metrics', undefined, "Failed to fetch research metrics.");
 }
 
 export const getModelComparison = async (): Promise<ModelComparisonResponse> => {
-    const response = await fetch('/api/research/comparison');
-    if (!response.ok) {
-        throw new Error("Failed to fetch model comparison data.");
-    }
-    return await response.json();
+    return fetchApi<ModelComparisonResponse>('/api/research/comparison', undefined, "Failed to fetch model comparison data.");
 }
 
 export const getAblationStudy = async (): Promise<AblationStudyResponse> => {
-    const response = await fetch('/api/research/ablation');
-    if (!response.ok) {
-        throw new Error("Failed to fetch ablation study data.");
-    }
-    return await response.json();
+    return fetchApi<AblationStudyResponse>('/api/research/ablation', undefined, "Failed to fetch ablation study data.");
 }
 
 export const getTrainingHistory = async (): Promise<{ baseline: any; attention: any }> => {
-    const response = await fetch('/api/research/history');
-    if (!response.ok) {
-        throw new Error("Failed to fetch training history data.");
-    }
-    return await response.json();
+    return fetchApi<{ baseline: any; attention: any }>('/api/research/history', undefined, "Failed to fetch training history data.");
 }
 
 export interface HistoryItem {
@@ -449,40 +434,23 @@ export const getHistory = async (params: {
     if (params.status) query.append("status", params.status);
     if (params.sort_by) query.append("sort_by", params.sort_by);
 
-    const response = await fetch(`/api/history?${query.toString()}`);
-    if (!response.ok) {
-        throw new Error("Unable to load analysis history.");
-    }
-    return await response.json();
+    return fetchApi<HistoryResponse>(`/api/history?${query.toString()}`, undefined, "Unable to load analysis history.");
 }
 
 export const getSingleAnalysis = async (analysisId: string): Promise<SingleAnalysisResponse> => {
-    const response = await fetch(`/api/history/${encodeURIComponent(analysisId)}`);
-    if (!response.ok) {
-        if (response.status === 404) {
-            throw new Error("Analysis record not found.");
-        }
-        throw new Error("Failed to load analysis record.");
-    }
-    return await response.json();
+    return fetchApi<SingleAnalysisResponse>(`/api/history/${encodeURIComponent(analysisId)}`, undefined, "Failed to load analysis record.");
 }
 
 export const deleteAnalysis = async (analysisId: string): Promise<void> => {
-    const response = await fetch(`/api/history/${encodeURIComponent(analysisId)}`, {
+    return fetchApi<void>(`/api/history/${encodeURIComponent(analysisId)}`, {
         method: 'DELETE'
-    });
-    if (!response.ok) {
-        throw new Error("Failed to delete analysis record.");
-    }
+    }, "Failed to delete analysis record.");
 }
 
 export const getHistoryStats = async (): Promise<HistoryStatsResponse> => {
-    const response = await fetch('/api/history/stats');
-    if (!response.ok) {
-        throw new Error("Failed to load history statistics.");
-    }
-    return await response.json();
+    return fetchApi<HistoryStatsResponse>('/api/history/stats', undefined, "Failed to load history statistics.");
 }
+
 
 
 
