@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: plantintel-ai-backend
+    runtime: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: MODEL_MODE
+        value: attention
+      - key: SEED
+        value: "42"
+      - key: DEVICE
+        value: cpu

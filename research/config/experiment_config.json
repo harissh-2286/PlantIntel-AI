@@ -1,0 +1,39 @@
+{
+  "project_name": "PlantIntel AI",
+  "phase": 10,
+  "experiment_id": "EXP-2026-CAPSTONE-01",
+  "seed": 42,
+  "reproducibility": {
+    "python_seed": 42,
+    "numpy_seed": 42,
+    "pytorch_seed": 42,
+    "cuda_deterministic": true
+  },
+  "dataset": {
+    "name": "PlantVillage Benchmark",
+    "num_classes": 38,
+    "image_size": [224, 224],
+    "mean": [0.485, 0.456, 0.406],
+    "std": [0.229, 0.224, 0.225],
+    "train_split_ratio": 0.70,
+    "val_split_ratio": 0.15,
+    "test_split_ratio": 0.15
+  },
+  "model": {
+    "backbone": "EfficientNetV2-S",
+    "architecture": "Adaptive Lightweight Attention",
+    "reduction_ratio": 8,
+    "use_channel_attention": true,
+    "use_spatial_attention": true,
+    "model_version": "v1.0.0"
+  },
+  "training": {
+    "optimizer": "Adam",
+    "learning_rate": 0.001,
+    "weight_decay": 1e-4,
+    "batch_size": 32,
+    "epochs": 10,
+    "lr_scheduler": "CosineAnnealingLR",
+    "loss_function": "CrossEntropyLoss"
+  }
+}

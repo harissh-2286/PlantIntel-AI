@@ -1,0 +1,7 @@
+{
+  "status": "dataset_not_downloaded",
+  "message": "Local benchmark dataset files not extracted. Data leakage check skipped.",
+  "duplicate_count": 0,
+  "train_val_leakage_count": 0,
+  "train_test_leakage_count": 0
+}

@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  plantintel-ai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: plantintel_ai_production
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_MODE=attention
+      - DEVICE=cpu
+      - SEED=42
+      - DATABASE_URL=sqlite:///./plantintel.db
+    volumes:
+      - plantintel_data:/app/data
+      - plantintel_uploads:/app/backend/uploads
+
+volumes:
+  plantintel_data:
+  plantintel_uploads:

@@ -1,0 +1,16 @@
+{
+  "checkpoint_verification": {
+    "baseline_model": {
+      "filename": "baseline_efficientnetv2s.pth",
+      "architecture": "EfficientNetV2-S Baseline",
+      "version": "v1.0.0",
+      "sha256": "N/A (Pretrained prototype used; checkpoint generated post-training)"
+    },
+    "proposed_model": {
+      "filename": "adaptive_attention_efficientnetv2s.pth",
+      "architecture": "EfficientNetV2-S + Adaptive Lightweight Attention",
+      "version": "v1.0.0",
+      "sha256": "N/A (Pretrained prototype used; checkpoint generated post-training)"
+    }
+  }
+}
