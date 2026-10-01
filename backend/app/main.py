@@ -22,9 +22,8 @@ logging.basicConfig(level=logging.INFO)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Initialize Database & Load Model
+    # Startup: Initialize Database (Model loaded lazily on demand to conserve RAM on free tier)
     init_db()
-    ai_model.load_model()
     yield
     # Shutdown
     pass

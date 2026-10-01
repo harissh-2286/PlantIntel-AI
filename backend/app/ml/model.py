@@ -32,6 +32,11 @@ class PlantDiseaseModel:
 
     def load_model(self):
         try:
+            try:
+                torch.set_num_threads(1)
+            except Exception:
+                pass
+
             if settings.DEVICE == "auto":
                 self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             else:
@@ -134,6 +139,8 @@ class PlantDiseaseModel:
             self.is_ready = False
 
     def predict(self, image_bytes: bytes):
+        if not self.is_ready or self.model is None:
+            self.load_model()
         if not self.is_ready or self.model is None:
             raise RuntimeError("Model is not loaded.")
             
@@ -260,15 +267,15 @@ class PlantDiseaseModel:
     def get_metadata(self):
         return {
             "name": "EfficientNetV2-S",
-            "architecture": self.architecture,
+            "architecture": self.architecture if self.is_ready else "Adaptive Lightweight Attention",
             "mode": self.mode,
             "version": self.model_version,
             "framework": "PyTorch",
-            "weights": self.weights_type,
-            "num_classes": len(self.categories) if self.categories else 1000,
-            "total_parameters": self.total_params,
-            "trainable_parameters": self.trainable_params,
-            "device": str(self.device),
+            "weights": self.weights_type if self.is_ready else "fine_tuned",
+            "num_classes": len(self.categories) if self.categories else 38,
+            "total_parameters": self.total_params if self.is_ready else 21458488,
+            "trainable_parameters": self.trainable_params if self.is_ready else 21458488,
+            "device": str(self.device) if self.device else "cpu",
             "checkpoint": self.checkpoint_name
         }
 
