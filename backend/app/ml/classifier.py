@@ -11,4 +11,6 @@ class Classifier:
         
     @staticmethod
     def is_ready():
+        if not ai_model.is_ready:
+            ai_model.load_model()
         return ai_model.is_ready
