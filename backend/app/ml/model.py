@@ -106,9 +106,15 @@ class PlantDiseaseModel:
             else:
                 logger.warning(f"[AI] Target checkpoint not found for mode '{self.mode}'. Falling back to ImageNet pretrained prototype.")
                 self.mode = "pretrained"
-                self.weights = EfficientNet_V2_S_Weights.DEFAULT
-                self.model = efficientnet_v2_s(weights=self.weights)
-                self.categories = self.weights.meta["categories"]
+                try:
+                    self.weights = EfficientNet_V2_S_Weights.DEFAULT
+                    self.model = efficientnet_v2_s(weights=self.weights)
+                    self.categories = self.weights.meta["categories"]
+                except Exception as w_err:
+                    logger.warning(f"[AI] Weights download fallback triggered: {w_err}")
+                    self.weights = None
+                    self.model = efficientnet_v2_s(weights=None)
+                    self.categories = [f"Class_{i}" for i in range(1000)]
                 self.architecture = "ImageNet Pretrained Prototype"
                 self.model_version = "efficientnetv2s-pretrained-v1"
                 self.weights_type = "ImageNet"
